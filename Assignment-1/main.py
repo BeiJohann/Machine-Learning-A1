@@ -1,62 +1,39 @@
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-import numpy as np
-from torch import Tensor, LongTensor, zeros
 
-from datenloader import open_data, get_numeric_representations_sents
-
-import daten_loader as a
+from data_loader import open_data, get_vocabulary, convert_into_num_tensor
 
 
+if __name__ == '__main__':
+    #open the data
+    train_x, train_y, list_of_lang = open_data()
 
-tensor, vocabulary = get_numeric_representations_sents(train_sent)
+    #generate the vocabs
+    mapping, vocabulary = get_vocabulary(train_x)
 
-type(train_sent[1])
-
-print(tensor[0][0])
-
-
-def char_to_index(char: object) -> object:
-    return vocabulary.index(char)
-
-
-print(char_to_index('n'))
+    numeric, train_y = convert_into_num_tensor(train_x, train_y, mapping)
+    print(numeric[:100])
 
 
-def char_to_tensor(char: object) -> object:
-    ret = torch.zeros(1, len(vocabulary))
-    ret[0][char_to_index(char)] = 1
-    return ret
+class GRUNet(nn.Module):
+    def __init__(self, vocab_size, seq_len, input_size, hidden_size, num_layers, output_size, dropout=0.01):
+        super().__init__()
+        self.num_layers = 2
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.emb = nn.Embedding(vocab_size, input_size)
+        self.gru = nn.GRU(input_size, hidden_size, num_layers=self.num_layers, dropout=dropout)
+        self.fc = nn.Linear(hidden_size * seq_len, output_size)
 
+    def forward(self, sequence):
+        output = self.emb(sequence)
+        hidden_layer = self.init_hidden(len(sequence[0]))
+        output, _ = self.gru(output, hidden_layer)
+        output = output.contiguous().view(-1, self.hidden_size * len(sequence[0]))
+        output = self.fc(output)
+        return output
 
-def sentence_to_tensor(sentence: object) -> object:
-    ret = torch.zeros(100, 1, len(vocabulary))
-    for i, char in range(100):
-        ret[i][0][char_to_index(char)] = 1
-    return ret
-
-
-def create_one_hot_vectors(sequences, vocabulary):
-    # one_hot_vectors = torch.Tensor((len(sequences), len(vocabulary)))
-    one_hot_vectors = []
-    for seq in sequences:
-        # one_hot_vec = zeros(len(vocabulary))
-        one_hot_vec = [-1.0] * len(vocabulary)
-        for char_int in seq:
-            char_int = int(char_int.item())
-            if char_int == -1:
-                break
-            one_hot_vec[char_int - 1] = 1.0
-        one_hot_vectors.append(one_hot_vec)
-
-    # one_hot_vectors = LongTensor(one_hot_vectors)
-    return one_hot_vectors
-
-
-hotvec = create_one_hot_vectors(tensor, voc)
-print(len(hotvec))
-
-# %%
-
-len(voc)
+    def init_hidden(self, seq_len):
+        return torch.zeros(self.num_layers, seq_len, self.hidden_size).float()
