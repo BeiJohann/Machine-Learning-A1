@@ -1,7 +1,4 @@
-from torch import Tensor, LongTensor, zeros
-from torch.nn.utils.rnn import pad_sequence
-
-
+from torch import Tensor
 
 
 def open_data():
@@ -13,6 +10,9 @@ def open_data():
     #print(listOfLang)
     return train_x, train_y, listOfLang
 
+def another_dic ():
+    pass
+
 def get_vocabulary(sents):
     vocabulary = list(set(sum(sents, [])))
     # print(vocabulary)
@@ -22,19 +22,17 @@ def get_vocabulary(sents):
 def convert_into_num_tensor(train_x, train_y, mapping):
     # this function returns 100 sentences for each sentence
     train_x_increment = []
-    proportioned_labels = []
+    y_extended = []
     for sent, label in zip(train_x, train_y):
         # this will add 100 sentences for each sent
         for index in range(len(sent)):
             train_x_increment.append([x for x in sent[:index + 1]])
-            proportioned_labels.append(label)
+            y_extended.append(label)
 
     x_train_numeric = [[ mapping[char] for char in sentences] for sentences in train_x_increment]
     x_train_tensors = [Tensor(sentence) for sentence in x_train_numeric]
 
-    numeric_tensor_paddded = pad_sequence(
-        x_train_tensors, batch_first=True, padding_value=0.0)
-    return numeric_tensor_paddded, train_y
+    return x_train_tensors, y_extended
 
 def char_to_index(char, vocabulary):
     return vocabulary.index(char)
