@@ -14,12 +14,13 @@ def another_dic ():
     pass
 
 def get_vocabulary(sents):
+    sents = [[x for x in sent] for sent in sents]
     vocabulary = list(set(sum(sents, [])))
     # print(vocabulary)
     char_to_int_mapping = {char: i + 1 for i, char in enumerate(vocabulary)}
     return char_to_int_mapping, vocabulary
 
-def convert_into_num_tensor(train_x, train_y, mapping):
+def convert_into_clipped(train_x, train_y):
     # this function returns 100 sentences for each sentence
     train_x_increment = []
     y_extended = []
@@ -29,10 +30,13 @@ def convert_into_num_tensor(train_x, train_y, mapping):
             train_x_increment.append([x for x in sent[:index + 1]])
             y_extended.append(label)
 
-    x_train_numeric = [[ mapping[char] for char in sentences] for sentences in train_x_increment]
-    x_train_tensors = [Tensor(sentence) for sentence in x_train_numeric]
+    return train_x_increment, y_extended
 
-    return x_train_tensors, y_extended
+def convert_into_num_tensor(train_x, mapping):
+    x_train_numeric = [[ mapping[char] for char in sentences] for sentences in train_x]
+    x_train_tensor = [Tensor(sentence) for sentence in x_train_numeric]
+    return x_train_tensor
+
 
 def char_to_index(char, vocabulary):
     return vocabulary.index(char)
