@@ -1,6 +1,8 @@
 # Imports
 import torch.nn as nn
 import torch
+import argparse
+import os
 
 from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
@@ -75,6 +77,8 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size=BATCH_SIZE, 
             optimizer.zero_grad()
             output = model(x_batch)
             loss = criterion(output, y_batch)
+            # take mean of the loss
+            loss = loss.mean()
             loss.backward()
             optimizer.step()
 
@@ -122,6 +126,21 @@ def test(model, mapping, test_x, test_y):
 
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(
+        description="Train a recurrent network for language identification")
+    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int,
+                        help="Specify the number of epochs for training the model")
+    parser.add_argument("-L", "--loss", dest="loss_function_type", type=int,
+                        help="Specify the loss function to be used. 1=CrossEntropyLoss, 2=CrossEntropy with character length multiplied, 3=CrossEntropy with character length added.")
+    parser.add_argument("-S", "--save", dest="save", type=bool,
+                        help="Specify if the model should be saved")
+    parser.add_argument("-L", "--load", dest="load", type=bool,
+                        help="Specify if the model should be loaded")
+    args = parser.parse_args()
+
+    EPOCH = args.num_epochs
+
     # open the data
     x, y, list_of_lang = open_data()
     
@@ -148,8 +167,12 @@ if __name__ == '__main__':
     print('Anzahl an Zeichen: ',vocab_size)
     output_size = len(list_of_lang)
 
-    model = GRUNet(vocab_size, SEQUENZ_LENGTH, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
-    model.set_dev(torch.device('cpu'))
+    if args.load and os.path.isfile('savedNet.pt'):
+        model = torch.load('savedNet.py')
+
+    else:
+        model = GRUNet(vocab_size, SEQUENZ_LENGTH, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
+        model.set_dev(torch.device('cpu'))
 
     # Initializing criterion and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -163,7 +186,11 @@ if __name__ == '__main__':
     model.set_dev(dev)
 
     # train the model
-    model = train(model, train_x_tensor, train_y, criterion, optimizer)
+    if args.load and os.path.isfile('savedNet.pt'):
+        model = train(model, train_x_tensor, train_y, criterion, optimizer)
+
+    if args.save:
+        torch.save(model, 'savedNet.pt')
 
     # test the model
     test(model, mapping, test_x, test_y)
