@@ -2,11 +2,11 @@ from torch import Tensor
 
 
 def open_data():
-    data = [line.rstrip("\n") for line in open('./myTrains.txt')]
+    data = [line.rstrip("\n") for line in open('./data/my_data.txt')]
     train_x = [list(line.split('\t')[0]) for line in data]
     train_y = [line.split('\t')[1] for line in data]
 
-    listOfLang = [line.split()[0] for line in open('./data/testLang.txt')]
+    listOfLang = [line.split()[0] for line in open('./data/test_lang.txt')]
     #print(listOfLang)
     return train_x, train_y, listOfLang
 
