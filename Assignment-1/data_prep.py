@@ -3,7 +3,7 @@ import argparse
 
 # to select a List of Languages, a File or 10 Arguments
 def select_language(selected_lang):
-    selected_lang = [line.split()[0] for line in open('./data/',selected_lang)]
+    selected_lang = [line.split()[0] for line in open('./data/' + selected_lang+ ".txt")]
 
     if not selected_lang:
         selected_languages = ['als', 'ckb', 'gle', 'zea', 'vls', 'swe', 'sco', 'por', 'nap', 'lit']
@@ -43,12 +43,10 @@ if __name__ == '__main__':
         description="Prepare the Data for training and testing. But everything for the selected language in one file")
     #parser.add_argument("-G", "--getfile", dest="get_file", type=str,
     #                    help="The name of the file from which the script is loading the data. Musst be placed in \data dir. Default is 'x_train.txt'")
-    parser.add_argument("-S", "--savefile", dest="save_file", type=str, default='my_data.txt',
-                        help="The name of the file from which the script is saving the data. Going to be saved in \data dir. Default is 'my_data.txt'")
-    parser.add_argument("-L", "--language", dest="language", type=str, default='testLang.txt',
-                        help="The name of the file from which the script is taking the selected language.  Musst be placed in \data dir. Default is 'test_lang.txt'")
-    parser = argparse.ArgumentParser()
-
+    parser.add_argument("-S", "--savefile", dest="save_file", type=str, default='my_data',
+                        help="The name of the file from which the script is saving the data. Going to be saved in \data dir. Default is 'my_data.txt'. You don't need to write .txt at the end")
+    parser.add_argument("-L", "--language", dest="language", type=str, default='test_lang',
+                        help="The name of the file from which the script is taking the selected language.  Musst be placed in \data dir. Default is 'test_lang.txt'. You don't need to write .txt at the end")
     args = parser.parse_args()
 
     prep_data(args.language, args.save_file)
