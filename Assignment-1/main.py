@@ -12,11 +12,11 @@ from data_loader import open_data, get_vocabulary, convert_into_num_tensor, conv
 
 # Parameters
 LEARNING_RATE = 0.01
-HIDDEN_SIZE = 200
-NUM_LAYERS = 2
-INPUT_SIZE = 200
+HIDDEN_SIZE = 10
+NUM_LAYERS = 3
+INPUT_SIZE = 100
 EPOCH = 5
-BATCH_SIZE = 300
+BATCH_SIZE = 400
 SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
 
@@ -24,7 +24,7 @@ DEVICE = 'cuda:1'
 class GRUNet(nn.Module):
     def __init__(self, vocab_size, seq_len, input_size, hidden_size, num_layers, output_size, dropout=0.01):
         super().__init__()
-        self.num_layers = 2
+        self.num_layers = num_layers
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.embed = nn.Embedding(vocab_size, input_size)
@@ -62,14 +62,16 @@ def padded_batching(train_x, train_y, batch_size):
         yield x_batch, y_batch
 
 
-def train(model, train_x, train_y, criterion, optimizer, batch_size=BATCH_SIZE, epoch=EPOCH, device=DEVICE):
+def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, device=DEVICE):
 
     for epoch in range(epoch):
         print("Epoch: %d" % (epoch + 1))
         epoch_loss = 0.0
+        epoch_steps = 0
 
         for x_batch, y_batch in padded_batching(train_x, train_y, batch_size):
 
+            epoch_steps += 1
             # sending to Cuda
             x_batch = torch.LongTensor(x_batch).to(dev)
             y_batch = torch.LongTensor(y_batch).to(dev)
@@ -84,7 +86,7 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size=BATCH_SIZE, 
 
             epoch_loss += loss.item()
 
-        print("Loss at epoch %d: %.7f" % (epoch + 1, epoch_loss))
+        print("Loss at epoch %d: %.7f" % (epoch + 1, epoch_loss/ epoch_steps))
     return model
 
 
@@ -131,7 +133,7 @@ if __name__ == '__main__':
         description="Train a recurrent network for language identification")
     parser.add_argument("-E", "--epochs", dest="num_epochs", type=int,
                         help="Specify the number of epochs for training the model")
-    parser.add_argument("-L", "--loss", dest="loss_function_type", type=int,
+    parser.add_argument("-LF", "--loss", dest="loss_function_type", type=int,
                         help="Specify the loss function to be used. 1=CrossEntropyLoss, 2=CrossEntropy with character length multiplied, 3=CrossEntropy with character length added.")
     parser.add_argument("-S", "--save", dest="save", type=bool,
                         help="Specify if the model should be saved")
@@ -168,7 +170,8 @@ if __name__ == '__main__':
     output_size = len(list_of_lang)
 
     if args.load and os.path.isfile('savedNet.pt'):
-        model = torch.load('savedNet.py')
+        print('Loading the Net')
+        model = torch.load('savedNet.pt')
 
     else:
         model = GRUNet(vocab_size, SEQUENZ_LENGTH, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
@@ -186,11 +189,14 @@ if __name__ == '__main__':
     model.set_dev(dev)
 
     # train the model
-    if args.load and os.path.isfile('savedNet.pt'):
-        model = train(model, train_x_tensor, train_y, criterion, optimizer)
+    if not(args.load and os.path.isfile('savedNet.pt')):
+        print('Training the model with %d epochs' % EPOCH)
+        model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH)
 
     if args.save:
+        print('saving the Net')
         torch.save(model, 'savedNet.pt')
 
     # test the model
+    print('testing')
     test(model, mapping, test_x, test_y)
