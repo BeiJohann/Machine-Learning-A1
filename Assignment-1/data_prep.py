@@ -1,4 +1,7 @@
 import argparse
+from sklearn.model_selection import train_test_split
+from sklearn.externals import joblib
+from data_loader import open_data, get_vocabulary
 
 
 # to select a List of Languages, a File or 10 Arguments
@@ -17,18 +20,33 @@ def select_language(selected_lang):
 
 # Save the selected languages in a File
 def prep_data(selected_lang, saved_file):
-    y_train = [line.split()[0] for line in open('./data/y_train.txt')]
-    x_train = [line.rstrip("\n") for line in open('./data/x_train.txt')]
+    y = [line.split()[0] for line in open('./data/y_train.txt')]
+    x = [line.rstrip("\n") for line in open('./data/x_train.txt')]
 
+    print('generating vocabulary and mapping')
+    mapping, vocabulary = get_vocabulary(x)
+    print('saving both')
+    joblib.dump(mapping, saved_file+'_mapping.sav')
+    joblib.dump(vocabulary, saved_file+'vocabulary.sav')
+
+    print('splitting data')
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, shuffle=True)
     # print(y_train[400:800])
 
+    print('select language')
     selected_languages = select_language(selected_lang)
-
-    output = open('./data/' + saved_file + ".txt", "w")
+    print('saving train and test data')
+    output_train = open('./data/' + saved_file + "_train.txt", "w")
+    output_test = open('./data/' + saved_file + "_test.txt", "w")
 
     for x, y in zip(x_train, y_train):
         if y in selected_languages and len(x) >= 100:
-            output.write(x[:100] + "\t" + y + "\n")
+            output_train.write(x[:100] + "\t" + y + "\n")
+
+    for x, y in zip(x_test, y_test):
+        if y in selected_languages and len(x) >= 100:
+            output_test.write(x[:100] + "\t" + y + "\n")
 
 
 # return all availabe languages
