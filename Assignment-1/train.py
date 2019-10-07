@@ -12,11 +12,11 @@ from data_loader import open_data, get_vocabulary, convert_into_num_tensor, conv
 
 # Parameters
 LEARNING_RATE = 0.01
-HIDDEN_SIZE = 10
+HIDDEN_SIZE = 100
 NUM_LAYERS = 3
 INPUT_SIZE = 100
 EPOCH = 5
-BATCH_SIZE = 400
+BATCH_SIZE = 50
 SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
 
@@ -77,6 +77,7 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
 
             optimizer.zero_grad()
             output = model(x_batch)
+            print(output, output.shape(), y_batch.shape())
             loss = criterion(output, y_batch)
             # take mean of the loss
             loss = loss.mean()
@@ -153,7 +154,7 @@ if __name__ == '__main__':
 
     # creating train and test data
     train_x, test_x, train_y, test_y = train_test_split(
-        x, y, test_size=0.2, shuffle=True)
+        x, y, test_size=0.2, shuffle=True, random_state=42)
 
     # extend both label und sentences to 100 length
     train_x, train_y = convert_into_clipped(train_x, train_y)

@@ -12,12 +12,12 @@ from data_loader import open_data, get_vocabulary, convert_into_num_tensor, conv
 
 # Parameters
 LEARNING_RATE = 0.01
-HIDDEN_SIZE = 10
+HIDDEN_SIZE = 100
 NUM_LAYERS = 3
 INPUT_SIZE = 100
 EPOCH = 5
-BATCH_SIZE = 400
-SEQUENZ_LENGTH = 100
+BATCH_SIZE = 50
+SEQUENZ_LENGTH = 1
 DEVICE = 'cuda:1'
 
 # The NN
@@ -78,6 +78,8 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
 
             optimizer.zero_grad()
             output = model(x_batch)
+            print(output, output.shape(), y_batch.shape())
+
             loss = criterion(output, y_batch)
             # take mean of the loss
             loss = loss.mean()
@@ -200,4 +202,3 @@ if __name__ == '__main__':
     # test the model
     print('testing')
     test(model, mapping, test_x, test_y)
-    
