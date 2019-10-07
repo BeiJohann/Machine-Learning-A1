@@ -12,7 +12,7 @@ from data_loader import open_data, get_vocabulary, convert_into_num_tensor, conv
 
 # Parameters
 LEARNING_RATE = 0.01
-HIDDEN_SIZE = 10
+HIDDEN_SIZE = 200
 NUM_LAYERS = 3
 INPUT_SIZE = 100
 EPOCH = 5
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     vocab_size = len(vocabulary) + 1
     print('Anzahl an Zeichen: ',vocab_size)
     output_size = len(list_of_lang)
-    '''
+    
     if args.load and os.path.isfile('savedNet.pt'):
         print('Loading the Net')
         model = torch.load('savedNet.pt')
@@ -200,4 +200,4 @@ if __name__ == '__main__':
     # test the model
     print('testing')
     test(model, mapping, test_x, test_y)
-    '''
+    
