@@ -168,7 +168,7 @@ if __name__ == '__main__':
     vocab_size = len(vocabulary) + 1
     print('Anzahl an Zeichen: ',vocab_size)
     output_size = len(list_of_lang)
-    
+
     if args.load and os.path.isfile('savedNet.pt'):
         print('Loading the Net')
         model = torch.load('savedNet.pt')
