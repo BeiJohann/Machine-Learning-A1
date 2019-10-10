@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch
 import argparse
 import os
+import joblib
 
 from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
@@ -101,7 +102,7 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
         print("Epoch: %d" % (epoch + 1))
         epoch_loss = 0.0
         epoch_steps = 0
-        print(train_x[:100],train_y[:100]) 
+        #print(train_x[:100],train_y[:100])
 
         for x_batch, y_batch in padded_batching(train_x, train_y, batch_size):
 
@@ -183,17 +184,24 @@ if __name__ == '__main__':
     EPOCH = args.num_epochs
 
     # open the data
-    x, y, list_of_lang = open_data()
+    train_x, train_y, list_of_lang = open_data('my_data_train')
+    test_x, test_y, list_of_lang = open_data('my_data_test')
+
     
     # generate the vocabs
-    mapping, vocabulary = get_vocabulary(x)
+    #mapping, vocabulary = get_vocabulary(x)
+    mapping = joblib.load('./data/my_data_mapping.sav')
+    vocabulary = joblib.load('./data/my_data_vocabulary.sav')
+
 
     # put the labels into indexes
-    y =[list_of_lang.index(label) for label in y ]
+    train_y =[list_of_lang.index(label) for label in train_y ]
+    test_y =[list_of_lang.index(label) for label in test_y ]
+
 
     # creating train and test data
-    train_x, test_x, train_y, test_y = train_test_split(
-        x, y, test_size=0.2, shuffle=True)
+    #train_x, test_x, train_y, test_y = train_test_split(
+    #    x, y, test_size=0.2, shuffle=True)
 
 
     #extend both label und sentences to 100 length

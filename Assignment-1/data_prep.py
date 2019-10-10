@@ -1,6 +1,6 @@
 import argparse
 from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
+import joblib
 from data_loader import open_data, get_vocabulary
 
 
@@ -20,33 +20,41 @@ def select_language(selected_lang):
 
 # Save the selected languages in a File
 def prep_data(selected_lang, saved_file):
+    print('open files')
     y = [line.split()[0] for line in open('./data/y_train.txt')]
     x = [line.rstrip("\n") for line in open('./data/x_train.txt')]
 
+    print('select language')
+    selected_languages = select_language(selected_lang)
+
+    x_selec = []
+    y_selec = []
+    for x, y in zip(x,y):
+        if y in selected_languages and len(x) >= 100:
+            x_selec.append(x)
+            y_selec.append(y)
+
     print('generating vocabulary and mapping')
-    mapping, vocabulary = get_vocabulary(x)
+    mapping, vocabulary = get_vocabulary(x_selec)
     print('saving both')
-    joblib.dump(mapping, saved_file+'_mapping.sav')
-    joblib.dump(vocabulary, saved_file+'vocabulary.sav')
+    joblib.dump(mapping,'./data/' +  saved_file+'_mapping.sav')
+    joblib.dump(vocabulary,'./data/' +  saved_file+'_vocabulary.sav')
 
     print('splitting data')
     x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.2, shuffle=True)
+        x_selec, y_selec, test_size=0.2, shuffle=True)
     # print(y_train[400:800])
 
-    print('select language')
-    selected_languages = select_language(selected_lang)
+
     print('saving train and test data')
     output_train = open('./data/' + saved_file + "_train.txt", "w")
     output_test = open('./data/' + saved_file + "_test.txt", "w")
 
     for x, y in zip(x_train, y_train):
-        if y in selected_languages and len(x) >= 100:
-            output_train.write(x[:100] + "\t" + y + "\n")
+        output_train.write(x[:100] + "\t" + y + "\n")
 
     for x, y in zip(x_test, y_test):
-        if y in selected_languages and len(x) >= 100:
-            output_test.write(x[:100] + "\t" + y + "\n")
+        output_test.write(x[:100] + "\t" + y + "\n")
 
 
 # return all availabe languages
