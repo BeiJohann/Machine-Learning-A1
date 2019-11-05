@@ -65,14 +65,15 @@ def padded_batching(train_x, train_y, batch_size):
 
 
 def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, device=DEVICE):
+    model.train()
     for epoch in range(epoch):
         print("Epoch: %d" % (epoch + 1))
         epoch_loss = 0.0
-        epoch_steps = 0
+        #epoch_steps = 0
         # print(train_x[:100],train_y[:100])
 
         for x_batch, y_batch in padded_batching(train_x, train_y, batch_size):
-            epoch_steps += 1
+            #epoch_steps += 1
             # sending to Cuda
             x_batch = torch.LongTensor(x_batch).to(dev)
             y_batch = torch.LongTensor(y_batch).to(dev)
@@ -82,6 +83,7 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
             # print(output.shape, y_batch.shape)
 
             loss = criterion(output, y_batch)
+            #insert the 3 loss methodes
             # take mean of the loss
             loss = loss.mean()
             loss.backward()
@@ -89,7 +91,7 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
 
             epoch_loss += loss.item()
 
-        print("Loss at epoch %d: %.7f" % (epoch + 1, epoch_loss / epoch_steps))
+        print("Loss at epoch %d: %.7f" % (epoch + 1, epoch_loss))
     return model
 
 
@@ -130,13 +132,8 @@ if __name__ == '__main__':
     print('Anzahl an Zeichen: ', vocab_size)
     output_size = len(list_of_lang)
 
-    if args.load and os.path.isfile('savedNet.pt'):
-        print('Loading the Net')
-        model = torch.load('savedNet.pt')
-
-    else:
-        model = GRUNet(vocab_size, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
-        model.set_dev(torch.device('cpu'))
+    model = GRUNet(vocab_size, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
+    model.set_dev(torch.device('cpu'))
 
     # Initializing criterion and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -150,10 +147,10 @@ if __name__ == '__main__':
     model.set_dev(dev)
 
     # train the model
-    if not (args.load and os.path.isfile('savedNet.pt')):
-        print('Training the model with %d epochs' % EPOCH)
-        model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH)
+    print('Training the model with %d epochs' % EPOCH)
+    model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH)
 
     if args.save:
         print('saving the Net')
-        torch.save(model, 'savedNet.pt')
+        joblib.dump(model, "{}_{}.pkl".format(
+            'savedNet.pt', args.loss_function_type))
