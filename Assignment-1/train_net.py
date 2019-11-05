@@ -12,12 +12,12 @@ from sklearn.model_selection import train_test_split
 from data_loader import open_data, get_vocabulary, convert_into_num_tensor, convert_into_clipped
 
 # Parameters
-LEARNING_RATE = 0.01
-HIDDEN_SIZE = 200
-NUM_LAYERS = 3
+LEARNING_RATE = 0.001
+HIDDEN_SIZE = 300
+NUM_LAYERS = 2
 INPUT_SIZE = 100
 EPOCH = 5
-BATCH_SIZE = 300
+BATCH_SIZE = 800
 SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
 
@@ -64,7 +64,7 @@ def padded_batching(train_x, train_y, batch_size):
         yield x_batch, y_batch
 
 
-def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, device=DEVICE):
+def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, loss_func=1, device=DEVICE):
     model.train()
     for epoch in range(epoch):
         print("Epoch: %d" % (epoch + 1))
@@ -84,6 +84,21 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
 
             loss = criterion(output, y_batch)
             #insert the 3 loss methodes
+            if loss_type != 1:
+                # get the number of characters in each sequence in the batch
+                char_lengths = []
+                for t in local_batch:
+                    non_zero_indices = torch.nonzero(t)
+                    char_lengths.append(non_zero_indices.size(0) / 100.0)
+                char_lengths = torch.Tensor(char_lengths)
+                char_lengths = char_lengths.to(dev)
+
+                if loss_type == 2:
+                    # multiply the losses of the batch with the character lengths
+                    loss *= char_lengths
+                elif loss_type == 3:
+                    # add the losses of the batch with the character lengths
+                    loss += char_lengths
             # take mean of the loss
             loss = loss.mean()
             loss.backward()
@@ -101,16 +116,19 @@ if __name__ == '__main__':
         description="Train a recurrent network for language identification")
     parser.add_argument("-E", "--epochs", dest="num_epochs", type=int,
                         help="Specify the number of epochs for training the model")
-    parser.add_argument("-LF", "--loss", dest="loss_function_type", type=int,
-                        help="Specify the loss function to be used. 1=CrossEntropyLoss, 2=CrossEntropy with character length multiplied, 3=CrossEntropy with character length added.")
+    parser.add_argument("-LF", "--loss", dest="loss_func", type=int,
+                        help="Specify the loss function to be used. Choose between 1,2,3")
     parser.add_argument("-S", "--save", dest="save", type=bool,
                         help="Specify if the model should be saved")
+    #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated
+    parser.add_argument("-D", "--train_data", dest="data_path", type=str,
+                        help="Specify the file from where the data is loaded")
     args = parser.parse_args()
 
     EPOCH = args.num_epochs
 
-    # open the data
-    train_x, train_y, list_of_lang = open_data('my_data_train')
+    # open the data 
+    train_x, train_y, list_of_lang = open_data(args.data_path)
 
     # generate the vocabs
     # mapping, vocabulary = get_vocabulary(x)
@@ -148,9 +166,8 @@ if __name__ == '__main__':
 
     # train the model
     print('Training the model with %d epochs' % EPOCH)
-    model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH)
+    model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH, args.loss_func)
 
     if args.save:
         print('saving the Net')
-        joblib.dump(model, "{}_{}.pkl".format(
-            'savedNet.pt', args.loss_function_type))
+        torch.save(model, 'savedNet.pt')
