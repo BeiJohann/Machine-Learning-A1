@@ -114,7 +114,8 @@ if __name__ == '__main__':
     parser.add_argument("-LF", "--loss", dest="loss_func", type=int, help="Specify the loss function to be used. Choose between 1,2,3")
     parser.add_argument("-S", "--save", dest="save", type=bool, help="Specify if the model should be saved")
     #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated
-    parser.add_argument("-D", "--train_data", dest="data_path", type=str, help="Specify the file from where the data is loaded")
+    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data_train',
+                        help="Specify the file from where the data is loaded")
     args = parser.parse_args()
     EPOCH = args.num_epochs
 
