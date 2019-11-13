@@ -81,19 +81,19 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, loss
 
             loss = criterion(output, y_batch)
             #insert the 3 loss methodes
-            if loss_type != 1:
+            if loss_func != 1:
                 # get the number of characters in each sequence in the batch
                 char_lengths = []
-                for t in local_batch:
+                for t in x_batch:
                     non_zero_indices = torch.nonzero(t)
                     char_lengths.append(non_zero_indices.size(0) / 100.0)
                 char_lengths = torch.Tensor(char_lengths)
                 char_lengths = char_lengths.to(dev)
 
-                if loss_type == 2:
+                if loss_func == 2:
                     # multiply the losses of the batch with the character lengths
                     loss *= char_lengths
-                elif loss_type == 3:
+                elif loss_func == 3:
                     # add the losses of the batch with the character lengths
                     loss += char_lengths
             # take mean of the loss
