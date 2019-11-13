@@ -2,12 +2,10 @@
 import torch.nn as nn
 import torch
 import argparse
-import os
 import joblib
 
 from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
-from sklearn.model_selection import train_test_split
 
 from data_loader import open_data, get_vocabulary, convert_into_num_tensor, convert_into_clipped
 
@@ -20,7 +18,6 @@ EPOCH = 5
 BATCH_SIZE = 300
 SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
-
 
 # The NN
 class GRUNet(nn.Module):
@@ -96,24 +93,18 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, devi
 
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(
-        description="Train a recurrent network for language identification")
-    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int,
-                        help="Specify the number of epochs for training the model")
-    parser.add_argument("-LF", "--loss", dest="loss_function_type", type=int,
-                        help="Specify the loss function to be used. 1=CrossEntropyLoss, 2=CrossEntropy with character length multiplied, 3=CrossEntropy with character length added.")
-    parser.add_argument("-S", "--save", dest="save", type=bool,
-                        help="Specify if the model should be saved")
+    # commandline arguments
+    parser = argparse.ArgumentParser(description="Train a recurrent network for language identification")
+    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int, help="Specify the number of epochs for training the model")
+    parser.add_argument("-LF", "--loss", dest="loss_function_type", type=int, help="Specify the loss function to be used. Choose between 1,2 and 3.")
+    parser.add_argument("-S", "--save", dest="save", type=bool, help="Specify if the model should be saved")
     args = parser.parse_args()
-
     EPOCH = args.num_epochs
 
     # open the data
     train_x, train_y, list_of_lang = open_data('my_data_train')
 
-    # generate the vocabs
-    # mapping, vocabulary = get_vocabulary(x)
+    # open the vocabs and mapping
     mapping = joblib.load('./data/my_data_mapping.sav')
     vocabulary = joblib.load('./data/my_data_vocabulary.sav')
 
@@ -125,32 +116,29 @@ if __name__ == '__main__':
 
     # creating a num tensor
     train_x_tensor = convert_into_num_tensor(train_x, mapping)
-    # print(train_x_tensor[:15])
+
+    vocab_size = len(vocabulary) + 1
+    print('number of character: ', vocab_size)
+    output_size = len(list_of_lang)
+    # is cuda available
+    if not (torch.cuda.is_available()):
+        DEVICE = 'cpu'
 
     # Initializing the Network
-    vocab_size = len(vocabulary) + 1
-    print('Anzahl an Zeichen: ', vocab_size)
-    output_size = len(list_of_lang)
-
     model = GRUNet(vocab_size, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
-    model.set_dev(torch.device('cpu'))
+    dev = torch.device(DEVICE)
+    model = model.to(dev)
+    model.set_dev(dev)
 
     # Initializing criterion and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
 
-    if not (torch.cuda.is_available()):
-        DEVICE = 'cpu'
-
-    dev = torch.device(DEVICE)
-    model = model.to(dev)
-    model.set_dev(dev)
-
     # train the model
     print('Training the model with %d epochs' % EPOCH)
     model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH)
 
+    # saving if it was specified in the commandline
     if args.save:
         print('saving the Net')
-        joblib.dump(model, "{}_{}.pkl".format(
-            'savedNet.pt', args.loss_function_type))
+        joblib.dump(model, "{}_{}.pkl".format('savedNet.pt', args.loss_function_type))

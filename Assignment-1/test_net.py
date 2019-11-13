@@ -58,37 +58,33 @@ def test(model, mapping, test_x, test_y):
 
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(
-        description="Train a recurrent network for language identification")
-    parser.add_argument("-L", "--load", dest="load", type=bool,
-                        help="Specify if the model should be loaded")
+    # commandline arguments
+    parser = argparse.ArgumentParser(description="Train a recurrent network for language identification")
+    parser.add_argument("-L", "--load", dest="load", type=bool, help="Specify if the model should be loaded")
     args = parser.parse_args()
 
     # open the data
     test_x, test_y, list_of_lang = open_data('my_data_test')
 
-
-    # generate the vocabs
-    #mapping, vocabulary = get_vocabulary(x)
+    # open the vocabs and mapping
     mapping = joblib.load('./data/my_data_mapping.sav')
     vocabulary = joblib.load('./data/my_data_vocabulary.sav')
-
 
     # put the labels into indexes
     test_y =[list_of_lang.index(label) for label in test_y ]
 
     # Initializing the Network
     vocab_size = len(vocabulary) + 1
-    print('Anzahl an Zeichen: ',vocab_size)
+    print('number of character: ',vocab_size)
     output_size = len(list_of_lang)
 
+    # Loading the network
     print('Loading the Net')
     model = torch.load('savedNet.pt')
-
+    # is Cuda available
     if not(torch.cuda.is_available()):
         DEVICE = 'cpu'
-
+    # put everything to the choosen device
     dev = torch.device(DEVICE)
     model = model.to(dev)
     model.set_dev(dev)
