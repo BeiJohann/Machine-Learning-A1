@@ -45,7 +45,7 @@ class GRUNet(nn.Module):
         return torch.zeros(self.num_layers, seq_len, self.hidden_size).float().to(self.dev)
 
 
-def test(model, mapping, test_x, test_y):
+def test(model, mapping, list_of_lang, test_x, test_y):
     all_pred = 0
     correct_pred_increment = 0
     intotal_correct = 0
@@ -79,7 +79,7 @@ def test(model, mapping, test_x, test_y):
                     num_until_correct = sentence_iterator
         if num_until_correct == -1 :
             correct_pred_increment += 100
-            print('The language' ,int_mapping[y],' with this sentences never hit the score', x)
+            print('The language' , list_of_lang[y],' with this sentences never hit the score', ''.join(x))
         else:
             correct_pred_increment += num_until_correct
         intotal_correct += correct_pred_per_sentence
@@ -124,4 +124,4 @@ if __name__ == '__main__':
 
     # test the model
     print('testing')
-    test(model, mapping, test_x, test_y)
+    test(model, mapping, list_of_lang, test_x, test_y)
