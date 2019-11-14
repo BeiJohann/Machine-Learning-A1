@@ -7,7 +7,7 @@ import joblib
 from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
 
-from data_loader import open_data, get_vocabulary, convert_into_num_tensor, convert_into_clipped
+from data_loader import open_data, convert_into_num_tensor, convert_into_clipped
 
 # Parameters
 LEARNING_RATE = 0.001
