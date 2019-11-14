@@ -10,16 +10,6 @@ def open_data(file):
     #print(listOfLang)
     return train_x, train_y, listOfLang
 
-def another_dic ():
-    pass
-
-def get_vocabulary(sents):
-    sents = [[x for x in sent] for sent in sents]
-    vocabulary = list(set(sum(sents, [])))
-    # print(vocabulary)
-    char_to_int_mapping = {char: i + 1 for i, char in enumerate(vocabulary)}
-    return char_to_int_mapping, vocabulary
-
 def convert_into_clipped(train_x, train_y):
     # this function returns 100 sentences for each sentence
     train_x_increment = []

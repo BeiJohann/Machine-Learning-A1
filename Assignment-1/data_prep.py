@@ -1,7 +1,7 @@
 import argparse
 from sklearn.model_selection import train_test_split
 import joblib
-from data_loader import open_data, get_vocabulary
+#from data_loader import open_data
 
 
 # to select a List of Languages, a File or 10 Arguments
@@ -17,6 +17,12 @@ def select_language(selected_lang):
     print(selected_languages)
     return selected_languages
 
+def get_vocabulary(sents):
+    sents = [[x for x in sent] for sent in sents]
+    vocabulary = list(set(sum(sents, [])))
+    # print(vocabulary)
+    char_to_int_mapping = {char: i + 1 for i, char in enumerate(vocabulary)}
+    return char_to_int_mapping, vocabulary
 
 # Save the selected languages in a File
 def prep_data(selected_lang, saved_file):

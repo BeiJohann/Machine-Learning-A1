@@ -9,7 +9,7 @@ from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
 from sklearn.model_selection import train_test_split
 
-from data_loader import open_data, get_vocabulary, convert_into_num_tensor, convert_into_clipped
+from data_loader import open_data, convert_into_num_tensor, convert_into_clipped
 
 # Parameters
 BATCH_SIZE = 300
@@ -50,11 +50,13 @@ def test(model, mapping, test_x, test_y):
     correct_pred_increment = 0
     intotal_correct = 0
 
+    int_mapping = {y: x for x, y in mapping.items()}
+
     for x, y in zip(test_x, test_y):
         # get 100 clipped and converted test_x for x
-        x, _ = convert_into_clipped([x],[y])
+        x_clipped, _ = convert_into_clipped([x],[y])
 
-        test_x_tensor = convert_into_num_tensor(x, mapping)
+        test_x_tensor = convert_into_num_tensor(x_clipped, mapping)
         # get 100 padded sequences
         padded_sequences = pad_sequence(
             test_x_tensor, batch_first=True, padding_value=0.0)
@@ -77,6 +79,7 @@ def test(model, mapping, test_x, test_y):
                     num_until_correct = sentence_iterator
         if num_until_correct == -1 :
             correct_pred_increment += 100
+            print('The language' ,int_mapping[y],' with this sentences never hit the score', x)
         else:
             correct_pred_increment += num_until_correct
         intotal_correct += correct_pred_per_sentence
