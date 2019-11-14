@@ -14,13 +14,12 @@ LEARNING_RATE = 0.001
 HIDDEN_SIZE = 300
 NUM_LAYERS = 2
 INPUT_SIZE = 100
-EPOCH = 5
 BATCH_SIZE = 800
 SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
 
 # The NN
-class GRUNet(nn.Module):
+class GRUNN(nn.Module):
     def __init__(self, vocab_size, input_size, hidden_size, num_layers, output_size, dropout=0.01):
         super().__init__()
         self.num_layers = num_layers
@@ -61,10 +60,10 @@ def padded_batching(train_x, train_y, batch_size):
         yield x_batch, y_batch
 
 
-def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, loss_func=1, device=DEVICE):
+def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, loss_func):
     model.train()
-    for epoch in range(epoch):
-        print("Epoch: %d" % (epoch + 1))
+    for epochs in range(epochs):
+        print("Epoch: %d" % (epochs + 1))
         epoch_loss = 0.0
         #epoch_steps = 0
         # print(train_x[:100],train_y[:100])
@@ -103,21 +102,19 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epoch, loss
 
             epoch_loss += loss.item()
 
-        print("Loss at epoch %d: %.7f" % (epoch + 1, epoch_loss))
+        print("Loss at epoch %d: %.7f" % (epochs + 1, epoch_loss))
     return model
 
 
 if __name__ == '__main__':
     # commandline arguments
     parser = argparse.ArgumentParser(description="Train a recurrent network for language identification")
-    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int, help="Specify the number of epochs for training the model")
-    parser.add_argument("-LF", "--loss", dest="loss_func", type=int, help="Specify the loss function to be used. Choose between 1,2,3")
-    parser.add_argument("-S", "--save", dest="save", type=bool, help="Specify if the model should be saved")
+    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int, default=10, help="Specify the number of epochs for training the model")
+    parser.add_argument("-LF", "--loss", dest="loss_func", type=int, default=1, help="Specify the loss function to be used. Choose between 1,2,3")
+    parser.add_argument("-S", "--save", dest="save", action='store_true', type=bool, help="Specify if the model should be saved")
     #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated
-    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data_train',
-                        help="Specify the file from where the data is loaded")
+    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data_train', help="Specify the file from where the data is loaded")
     args = parser.parse_args()
-    EPOCH = args.num_epochs
 
     # open the data 
     train_x, train_y, list_of_lang = open_data(args.data_path)
@@ -143,7 +140,7 @@ if __name__ == '__main__':
         DEVICE = 'cpu'
 
     # Initializing the Network
-    model = GRUNet(vocab_size, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
+    model = GRUNN(vocab_size, INPUT_SIZE, HIDDEN_SIZE, NUM_LAYERS, output_size)
     dev = torch.device(DEVICE)
     model = model.to(dev)
     model.set_dev(dev)
@@ -153,8 +150,8 @@ if __name__ == '__main__':
     optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
 
     # train the model
-    print('Training the model with %d epochs' % EPOCH)
-    model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, EPOCH, args.loss_func)
+    print('Training the model with %d epochs' % args.num_epochs)
+    model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, args.num_epochs, args.loss_func)
 
     # saving if it was specified in the commandline
     if args.save:

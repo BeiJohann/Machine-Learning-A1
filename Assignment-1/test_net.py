@@ -17,7 +17,7 @@ SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
 
 # The NN
-class GRUNet(nn.Module):
+class GRUNN(nn.Module):
     def __init__(self, vocab_size, input_size, hidden_size, num_layers, output_size, dropout=0.01):
         super().__init__()
         self.num_layers = num_layers
@@ -79,7 +79,7 @@ def test(model, mapping, list_of_lang, test_x, test_y):
                     num_until_correct = sentence_iterator
         if num_until_correct == -1 :
             correct_pred_increment += 100
-            print('The language' , list_of_lang[y],' with this sentences never hit the score', ''.join(x))
+            print('The language' , list_of_lang[y],' with this sentences ', ''.join(x), 'never hit the score')
         else:
             correct_pred_increment += num_until_correct
         intotal_correct += correct_pred_per_sentence
@@ -92,12 +92,12 @@ if __name__ == '__main__':
     # commandline arguments
     parser = argparse.ArgumentParser( description="Train a recurrent network for language identification")
     parser.add_argument("-L", "--load_model", dest="model_path", type=str, help="Specify the model path")
-    parser.add_argument("-X", "--test_sent", dest="x_file", type=str, help="Specify the file from where the sentences are loaded")
-    parser.add_argument("-Y", "--test_label", dest="y_file", type=str, help="Specify the file from where the Labels are loaded")
+    #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated
+    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data_test', help="Specify the file from where the data is loaded")
     args = parser.parse_args()
 
     # open the data
-    test_x, test_y, list_of_lang = open_data('my_data_test')
+    test_x, test_y, list_of_lang = open_data(args.data_path)
 
     # open the vocabs and mapping
     mapping = joblib.load('./data/my_data_mapping.sav')
