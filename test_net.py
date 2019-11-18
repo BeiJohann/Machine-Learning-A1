@@ -70,7 +70,7 @@ if __name__ == '__main__':
               
     # commandline arguments
     parser = argparse.ArgumentParser( description="Train a recurrent network for language identification")
-    parser.add_argument("-L", "--load_model", dest="model_path", type=str, help="Specify the model path")
+    parser.add_argument("-L", "--load_model", dest="model_path", type=str, default='myNet' help="Specify the model path")
     #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated. Also is the vocab dedicated to the x,y files.
     parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data', help="Specify the file from where the data is loaded")
     args = parser.parse_args()
@@ -91,8 +91,8 @@ if __name__ == '__main__':
     output_size = len(list_of_lang)
 
     # Loading the network
-    print('Loading the Net')
-    model = torch.load('savedNet.pt')
+    print('Loading the Net from ./data/'+args.model_path+'.pt')
+    model = torch.load('./data/'+args.model_path+'.pt')
     # is Cuda available
     if not(torch.cuda.is_available()):
         DEVICE = 'cpu'
