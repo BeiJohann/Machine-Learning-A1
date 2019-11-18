@@ -90,10 +90,11 @@ def test(model, mapping, list_of_lang, test_x, test_y):
     print('Average propability for predicting right: ', intotal_correct / all_pred)
     print('how many times a Language never hit:')
     for lang in list_of_lang:
-        print('language %d hit never %d times', lang, instances_never_hit.count(lang)
+        print('language %d hit never %d times', lang, instances_never_hit.count(lang))
 
 
 if __name__ == '__main__':
+              
     # commandline arguments
     parser = argparse.ArgumentParser( description="Train a recurrent network for language identification")
     parser.add_argument("-L", "--load_model", dest="model_path", type=str, help="Specify the model path")
