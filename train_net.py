@@ -90,7 +90,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Train a recurrent network for language identification")
     parser.add_argument("-E", "--epochs", dest="num_epochs", type=int, default=10, help="Specify the number of epochs")
     parser.add_argument("-L", "--loss", dest="loss_func", type=int, default=1, help="Specify the loss function to be used. Choose between 1,2,3")
-    parser.add_argument("-S", "--save", dest="save", action='store_true',  help="Specify if the model should be saved")
+    parser.add_argument("-S", "--save", dest="model_path", type=str, default='myNet', help="Specify if the model should be saved")
     #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated. Also is the vocab dedicated to the x,y files.
     parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data', help="Specify the file from where the data is loaded")
     args = parser.parse_args()
@@ -134,5 +134,5 @@ if __name__ == '__main__':
 
     # saving if it was specified in the commandline
     if args.save:
-        print('saving the Net')
-        torch.save(model, 'savedNet.pt')
+        print('saving the Net as ./data/'+args.model_path+'.pt')
+        torch.save(model,'./data/'+args.model_path+'.pt')
