@@ -49,6 +49,7 @@ def test(model, mapping, list_of_lang, test_x, test_y):
     all_pred = 0
     correct_pred_increment = 0
     intotal_correct = 0
+    instances_never_hit = []
 
     int_mapping = {y: x for x, y in mapping.items()}
 
@@ -79,13 +80,17 @@ def test(model, mapping, list_of_lang, test_x, test_y):
                     num_until_correct = sentence_iterator
         if num_until_correct == -1 :
             correct_pred_increment += 100
-            print('The language' , list_of_lang[y],' with this sentences ', ''.join(x), 'never hit the score')
+            #print('The language' , list_of_lang[y],' with this sentences ', ''.join(x), 'never hit the score')
+            instances_never_hit.append(list_of_lang[y])
         else:
             correct_pred_increment += num_until_correct
         intotal_correct += correct_pred_per_sentence
 
     print('Average incremets after prediction: ', correct_pred_increment / len(test_y))
     print('Average propability for predicting right: ', intotal_correct / all_pred)
+    print('how many times a Language never hit:')
+    for lang in list_of_lang:
+        print('language %d hit never %d times', lang, instances_never_hit.count(lang)
 
 
 if __name__ == '__main__':
