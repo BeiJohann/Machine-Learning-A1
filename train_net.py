@@ -132,7 +132,6 @@ if __name__ == '__main__':
     print('Training the model with %d epochs' % args.num_epochs)
     model = train(model, train_x_tensor, train_y, criterion, optimizer, BATCH_SIZE, args.num_epochs, args.loss_func)
 
-    # saving if it was specified in the commandline
-    if args.save:
-        print('saving the Net as ./data/'+args.model_path+'.pt')
-        torch.save(model,'./data/'+args.model_path+'.pt')
+    # Saving the model
+    print('saving the Net as ./data/'+args.model_path+'.pt')
+    torch.save(model,'./data/'+args.model_path+'.pt')
