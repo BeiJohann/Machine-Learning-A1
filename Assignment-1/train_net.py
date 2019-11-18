@@ -8,6 +8,7 @@ from torch.optim import Adam
 from torch.nn.utils.rnn import pad_sequence
 
 from data_loader import open_data, convert_into_num_tensor, convert_into_clipped
+from GRUNN import GRUNN
 
 # Parameters
 LEARNING_RATE = 0.001
@@ -17,34 +18,6 @@ INPUT_SIZE = 100
 BATCH_SIZE = 800
 SEQUENZ_LENGTH = 100
 DEVICE = 'cuda:1'
-
-# The NN
-class GRUNN(nn.Module):
-    def __init__(self, vocab_size, input_size, hidden_size, num_layers, output_size, dropout=0.01):
-        super().__init__()
-        self.num_layers = num_layers
-        self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.embed = nn.Embedding(vocab_size, input_size)
-        self.gru = nn.GRU(input_size, hidden_size, num_layers=self.num_layers, dropout=dropout)
-        self.lin1 = nn.Linear(hidden_size * input_size, output_size)
-
-    def forward(self, sequence):
-        # print(sequence.size())
-        output = self.embed(sequence)
-        # print(output.size())
-        hidden_layer = self.init_hidden(len(sequence[0]))
-        output, _ = self.gru(output, hidden_layer)
-        output = output.contiguous().view(-1, self.hidden_size * len(sequence[0]))
-        # print(output.size())
-        output = self.lin1(output)
-        return output
-
-    def set_dev(self, dev):
-        self.dev = dev
-
-    def init_hidden(self, seq_len):
-        return torch.zeros(self.num_layers, seq_len, self.hidden_size).float().to(self.dev)
 
 
 def padded_batching(train_x, train_y, batch_size):
@@ -78,23 +51,28 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, los
             output = model(x_batch)
             # print(output.shape, y_batch.shape)
 
-            loss = criterion(output, y_batch)
-            #insert the 3 loss methodes
-            if loss_func != 1:
-                # get the number of characters in each sequence in the batch
-                char_lengths = []
-                for t in x_batch:
-                    non_zero_indices = torch.nonzero(t)
-                    char_lengths.append(non_zero_indices.size(0) / 100.0)
-                char_lengths = torch.Tensor(char_lengths)
-                char_lengths = char_lengths.to(dev)
+            # measure number of chars in prefix
+            for prefix in y_batch:
+                char_len = torch.nonzero(prefix)
+                prefix_len.append(char_len.size(0))
+                # vocab_len.append(len(X_batch[0]))
+            prefix_len = torch.FloatTensor(prefix_len)
+            prefix_len = prefix_len.to(dev)
 
-                if loss_func == 2:
-                    # multiply the losses of the batch with the character lengths
-                    loss *= char_lengths
-                elif loss_func == 3:
-                    # add the losses of the batch with the character lengths
-                    loss += char_lengths
+            #insert the 3 loss methodes
+            if args.loss_type == 1:
+                loss = criterion(output, y_batch)
+            # loss including character prefix length
+            if args.loss_type == 2:
+                loss = criterion(output, y_batch)
+                #loss *= (prefix_len/vocab_len)
+                loss *= prefix_len
+                loss = loss.mean()
+            # additive loss including character prefix
+            if args.loss_type == 3:
+                loss = criterion(output, y_batch)
+                loss += prefix_len
+                loss = loss.mean()
             # take mean of the loss
             loss = loss.mean()
             loss.backward()
