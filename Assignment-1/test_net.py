@@ -71,16 +71,16 @@ if __name__ == '__main__':
     # commandline arguments
     parser = argparse.ArgumentParser( description="Train a recurrent network for language identification")
     parser.add_argument("-L", "--load_model", dest="model_path", type=str, help="Specify the model path")
-    #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated
-    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data_test', help="Specify the file from where the data is loaded")
+    #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated. Also is the vocab dedicated to the x,y files.
+    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data', help="Specify the file from where the data is loaded")
     args = parser.parse_args()
 
     # open the data
-    test_x, test_y, list_of_lang = open_data(args.data_path)
+    test_x, test_y, list_of_lang = open_data(args.data_path+'_test')
 
     # open the vocabs and mapping
-    mapping = joblib.load('./data/my_data_mapping.sav')
-    vocabulary = joblib.load('./data/my_data_vocabulary.sav')
+    mapping = joblib.load('./data/'+args.data_path+'_mapping.sav')
+    vocabulary = joblib.load('./data/'+args.data_path+'_vocabulary.sav')
 
     # put the labels into indexes
     test_y =[list_of_lang.index(label) for label in test_y ]

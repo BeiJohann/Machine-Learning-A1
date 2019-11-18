@@ -88,19 +88,19 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, los
 if __name__ == '__main__':
     # commandline arguments
     parser = argparse.ArgumentParser(description="Train a recurrent network for language identification")
-    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int, default=10, help="Specify the number of epochs for training the model")
-    parser.add_argument("-LF", "--loss", dest="loss_func", type=int, default=1, help="Specify the loss function to be used. Choose between 1,2,3")
+    parser.add_argument("-E", "--epochs", dest="num_epochs", type=int, default=10, help="Specify the number of epochs")
+    parser.add_argument("-L", "--loss", dest="loss_func", type=int, default=1, help="Specify the loss function to be used. Choose between 1,2,3")
     parser.add_argument("-S", "--save", dest="save", action='store_true',  help="Specify if the model should be saved")
-    #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated
-    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data_train', help="Specify the file from where the data is loaded")
+    #only one Argument for the Data, becaus X,Y are in the same file und shouldn't be seperated. Also is the vocab dedicated to the x,y files.
+    parser.add_argument("-D", "--train_data", dest="data_path", type=str, default='my_data', help="Specify the file from where the data is loaded")
     args = parser.parse_args()
 
     # open the data 
-    train_x, train_y, list_of_lang = open_data(args.data_path)
+    train_x, train_y, list_of_lang = open_data(args.data_path+'_train')
 
     # open the vocabs and mapping
-    mapping = joblib.load('./data/my_data_mapping.sav')
-    vocabulary = joblib.load('./data/my_data_vocabulary.sav')
+    mapping = joblib.load('./data/'+args.data_path+'_mapping.sav')
+    vocabulary = joblib.load('./data/'+args.data_path+'_vocabulary.sav')
 
     # put the labels into indexes
     train_y = [list_of_lang.index(label) for label in train_y]
