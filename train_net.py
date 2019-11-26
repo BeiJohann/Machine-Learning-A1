@@ -53,7 +53,7 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, los
 
             prefix_len = []
             # measure number of chars in prefix
-            for prefix in y_batch:
+            for prefix in x_batch:
                 char_len = torch.nonzero(prefix)
                 prefix_len.append(char_len.size(0))
                 # vocab_len.append(len(X_batch[0]))
@@ -63,10 +63,10 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, los
             #insert the 3 loss methodes
             if loss_func == 1:
                 loss = criterion(output, y_batch)
+                loss = loss.mean()
             # loss including character prefix length
             if loss_func == 2:
                 loss = criterion(output, y_batch)
-                #loss *= (prefix_len/vocab_len)
                 loss *= prefix_len
                 loss = loss.mean()
             # additive loss including character prefix
@@ -75,7 +75,6 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, los
                 loss += prefix_len
                 loss = loss.mean()
             # take mean of the loss
-            loss = loss.mean()
             loss.backward()
             optimizer.step()
 
