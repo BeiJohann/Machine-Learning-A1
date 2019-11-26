@@ -50,28 +50,28 @@ def train(model, train_x, train_y, criterion, optimizer, batch_size, epochs, los
             optimizer.zero_grad()
             output = model(x_batch)
             # print(output.shape, y_batch.shape)
+            
+            loss = criterion(output, y_batch)
 
             prefix_len = []
             # measure number of chars in prefix
             for prefix in x_batch:
-                char_len = torch.nonzero(prefix)
+                char_len = torch.nonzero(prefix)  
                 prefix_len.append(char_len.size(0))
-                # vocab_len.append(len(X_batch[0]))
+                #vocab_len.append(len(X_batch[0]))
             prefix_len = torch.FloatTensor(prefix_len)
             prefix_len = prefix_len.to(dev)
 
             #insert the 3 loss methodes
             if loss_func == 1:
-                loss = criterion(output, y_batch)
                 loss = loss.mean()
             # loss including character prefix length
             if loss_func == 2:
-                loss = criterion(output, y_batch)
+                #print(loss,prefix_len)
                 loss *= prefix_len
                 loss = loss.mean()
             # additive loss including character prefix
             if loss_func == 3:
-                loss = criterion(output, y_batch)
                 loss += prefix_len
                 loss = loss.mean()
             # take mean of the loss
@@ -124,7 +124,10 @@ if __name__ == '__main__':
     model.set_dev(dev)
 
     # Initializing criterion and optimizer
-    criterion = nn.CrossEntropyLoss()
+    if args.loss_func == 1:
+        criterion = nn.CrossEntropyLoss()
+    else:
+        criterion = nn.CrossEntropyLoss(reduction='none')
     optimizer = Adam(model.parameters(), lr=LEARNING_RATE)
 
     # train the model
